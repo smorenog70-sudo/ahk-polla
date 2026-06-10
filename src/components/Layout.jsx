@@ -15,6 +15,7 @@ const adminItems = [
   { to: '/admin/marcadores', label: 'Marcadores' },
   { to: '/admin/grupos', label: 'Resultados Grupos' },
   { to: '/admin/terceros', label: 'Mejores Terceros' },
+  { to: '/admin/llaves', label: 'Llaves (eliminatorias)' },
   { to: '/admin/usuarios', label: 'Usuarios' },
   { to: '/admin/config', label: 'Config' },
 ]
@@ -55,6 +56,18 @@ export default function Layout() {
             </div>
             <NavLink to="/perfil" onClick={() => setMenuOpen(false)} className="block px-3 py-2 rounded text-white hover:bg-brand-700">
               🎭 Mi perfil
+            </NavLink>
+            <NavLink to="/progreso" onClick={() => setMenuOpen(false)} className="block px-3 py-2 rounded text-white hover:bg-brand-700">
+              📈 Mi progreso
+            </NavLink>
+            <NavLink to="/resumen" onClick={() => setMenuOpen(false)} className="block px-3 py-2 rounded text-white hover:bg-brand-700">
+              📋 Resumen de fecha
+            </NavLink>
+            <NavLink to="/bracket" onClick={() => setMenuOpen(false)} className="block px-3 py-2 rounded text-white hover:bg-brand-700">
+              🏆 Camino a la final
+            </NavLink>
+            <NavLink to="/revive" onClick={() => setMenuOpen(false)} className="block px-3 py-2 rounded text-white hover:bg-brand-700">
+              📜 Revive el partido
             </NavLink>
             <NavLink to="/muro" onClick={() => setMenuOpen(false)} className="block px-3 py-2 rounded text-white hover:bg-brand-700">
               📰 Muro de actividad

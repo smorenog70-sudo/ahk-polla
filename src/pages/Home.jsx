@@ -136,6 +136,14 @@ export default function Home() {
         </div>
       </div>
 
+      <Link to="/progreso" className="block card text-center text-accent-500 hover:bg-ink-700">
+        📈 Ver mi progreso y logros
+      </Link>
+
+      <Link to="/bracket" className="block card text-center text-accent-500 hover:bg-ink-700">
+        🏆 Ver el camino a la final
+      </Link>
+
       <Link to="/comunidad" className="block card text-center text-accent-500 hover:bg-ink-700">
         📊 Ver estadísticas comunales
       </Link>

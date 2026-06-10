@@ -8,6 +8,8 @@ export default {
         brand: {
           50:  '#eef3fb',
           100: '#d5e0f0',
+          300: '#7a9bd0',
+          400: '#4d7bc0',
           500: '#2E5DA8',  // azul medio AHK (navbar)
           600: '#1F3A6E',  // azul institucional principal
           700: '#152849',  // azul oscuro
