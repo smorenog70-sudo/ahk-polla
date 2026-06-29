@@ -4,7 +4,7 @@ export default {
   theme: {
     extend: {
       colors: {
-        // Paleta AHK Colombia
+        // Paleta AHK Colombia (azul institucional + dorado)
         brand: {
           50:  '#eef3fb',
           100: '#d5e0f0',
@@ -17,7 +17,7 @@ export default {
         },
         accent: {
           400: '#F5C547',
-          500: '#F5B400',  // dorado AHK (botones tipo "Ver más")
+          500: '#F5B400',  // dorado AHK
           600: '#D49A00',
         },
         ink: {

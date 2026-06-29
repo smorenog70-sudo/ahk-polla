@@ -1,7 +1,7 @@
 import { Outlet, NavLink, Link, useNavigate } from 'react-router-dom'
 import { useState } from 'react'
 import { useAuth } from '../lib/auth'
-import { BRAND } from '../lib/brand'
+import LiveSimulatorButton from './LiveSimulatorButton'
 
 const navItems = [
   { to: '/', label: 'Inicio', icon: '🏠' },
@@ -12,6 +12,7 @@ const navItems = [
 ]
 
 const adminItems = [
+  { to: '/admin/dashboard', label: '🛡️ Panel de control' },
   { to: '/admin/marcadores', label: 'Marcadores' },
   { to: '/admin/grupos', label: 'Resultados Grupos' },
   { to: '/admin/terceros', label: 'Mejores Terceros' },
@@ -32,65 +33,72 @@ export default function Layout() {
 
   return (
     <div className="min-h-screen flex flex-col pb-20">
-      <header className="sticky top-0 z-30 bg-brand-600 border-b border-brand-700">
+      <header className="sticky top-0 z-30 bg-ink-800 border-b border-ink-700">
         <div className="max-w-2xl mx-auto px-4 py-3 flex items-center justify-between">
           <Link to="/" className="flex items-center gap-2">
-            <img src="/logo.png" alt="Logo" className="w-9 h-9 rounded-full bg-white p-0.5" />
-            <span className="font-bold text-base text-white leading-tight">
-              {BRAND.name}
-            </span>
+            <img src="/logo.png" alt="Polla AHK" className="w-9 h-9 rounded-full bg-white p-0.5" />
+            <span className="font-bold text-lg">Polla AHK</span>
           </Link>
           <button
             onClick={() => setMenuOpen(o => !o)}
-            className="p-2 rounded-lg hover:bg-brand-700 text-white"
+            className="p-2 rounded-lg hover:bg-ink-700"
             aria-label="Menú"
           >
             <span className="text-xl">{menuOpen ? '✕' : '☰'}</span>
           </button>
         </div>
         {menuOpen && (
-          <div className="max-w-2xl mx-auto px-4 pb-3 space-y-1 bg-brand-600">
-            <div className="px-3 py-2 text-sm text-ink-100">
+          <div className="max-w-2xl mx-auto px-4 pb-3 space-y-1">
+            <div className="px-3 py-2 text-sm text-ink-300">
               {profile?.display_name || user?.email}
-              {profile?.is_admin && <span className="ml-2 pill bg-accent-500 text-brand-900">ADMIN</span>}
+              {profile?.is_admin && <span className="ml-2 pill bg-brand-600 text-white">ADMIN</span>}
             </div>
-            <NavLink to="/perfil" onClick={() => setMenuOpen(false)} className="block px-3 py-2 rounded text-white hover:bg-brand-700">
+            <NavLink to="/perfil" onClick={() => setMenuOpen(false)} className="block px-3 py-2 rounded hover:bg-ink-700">
               🎭 Mi perfil
             </NavLink>
-            <NavLink to="/progreso" onClick={() => setMenuOpen(false)} className="block px-3 py-2 rounded text-white hover:bg-brand-700">
+            <NavLink to="/progreso" onClick={() => setMenuOpen(false)} className="block px-3 py-2 rounded hover:bg-ink-700">
               📈 Mi progreso
             </NavLink>
-            <NavLink to="/resumen" onClick={() => setMenuOpen(false)} className="block px-3 py-2 rounded text-white hover:bg-brand-700">
+            <NavLink to="/simulador" onClick={() => setMenuOpen(false)} className="block px-3 py-2 rounded hover:bg-ink-700">
+              🔮 Simulador en vivo
+            </NavLink>
+            <NavLink to="/grupos-mundial" onClick={() => setMenuOpen(false)} className="block px-3 py-2 rounded hover:bg-ink-700">
+              🌍 Grupos del Mundial
+            </NavLink>
+            <NavLink to="/laboratorio" onClick={() => setMenuOpen(false)} className="block px-3 py-2 rounded hover:bg-ink-700">
+              🔬 Laboratorio de datos
+            </NavLink>
+            <NavLink to="/resumen" onClick={() => setMenuOpen(false)} className="block px-3 py-2 rounded hover:bg-ink-700">
               📋 Resumen de fecha
             </NavLink>
-            <NavLink to="/bracket" onClick={() => setMenuOpen(false)} className="block px-3 py-2 rounded text-white hover:bg-brand-700">
+            <NavLink to="/bracket" onClick={() => setMenuOpen(false)} className="block px-3 py-2 rounded hover:bg-ink-700">
               🏆 Camino a la final
             </NavLink>
-            <NavLink to="/revive" onClick={() => setMenuOpen(false)} className="block px-3 py-2 rounded text-white hover:bg-brand-700">
+            <NavLink to="/revive" onClick={() => setMenuOpen(false)} className="block px-3 py-2 rounded hover:bg-ink-700">
               📜 Revive el partido
             </NavLink>
-            <NavLink to="/muro" onClick={() => setMenuOpen(false)} className="block px-3 py-2 rounded text-white hover:bg-brand-700">
+            <NavLink to="/muro" onClick={() => setMenuOpen(false)} className="block px-3 py-2 rounded hover:bg-ink-700">
               📰 Muro de actividad
             </NavLink>
-            <NavLink to="/duelo" onClick={() => setMenuOpen(false)} className="block px-3 py-2 rounded text-white hover:bg-brand-700">
+            <NavLink to="/duelo" onClick={() => setMenuOpen(false)} className="block px-3 py-2 rounded hover:bg-ink-700">
               ⚔️ Duelo
             </NavLink>
-            <NavLink to="/comunidad" onClick={() => setMenuOpen(false)} className="block px-3 py-2 rounded text-white hover:bg-brand-700">
+            <NavLink to="/comunidad" onClick={() => setMenuOpen(false)} className="block px-3 py-2 rounded hover:bg-ink-700">
               📊 Estadísticas comunales
             </NavLink>
-            <NavLink to="/reglas" onClick={() => setMenuOpen(false)} className="block px-3 py-2 rounded text-white hover:bg-brand-700">
+            <NavLink to="/reglas" onClick={() => setMenuOpen(false)} className="block px-3 py-2 rounded hover:bg-ink-700">
               📜 Reglas y premios
             </NavLink>
             {profile?.is_admin && (
               <>
-                <div className="px-3 pt-3 pb-1 text-xs uppercase tracking-wider text-ink-100">Admin</div>
+                <div className="px-3 pt-3 pb-1 text-xs uppercase tracking-wider text-ink-500">Admin</div>
                 {adminItems.map(i => (
                   <NavLink
                     key={i.to}
                     to={i.to}
                     onClick={() => setMenuOpen(false)}
                     className={({ isActive }) =>
-                      `block px-3 py-2 rounded text-white hover:bg-brand-700 ${isActive ? 'bg-brand-700 text-accent-400' : ''}`
+                      `block px-3 py-2 rounded hover:bg-ink-700 ${isActive ? 'bg-ink-700 text-brand-500' : ''}`
                     }
                   >
                     🔧 {i.label}
@@ -100,7 +108,7 @@ export default function Layout() {
             )}
             <button
               onClick={handleSignOut}
-              className="w-full text-left px-3 py-2 rounded text-red-300 hover:bg-brand-700"
+              className="w-full text-left px-3 py-2 rounded hover:bg-ink-700 text-red-400"
             >
               ↩️ Cerrar sesión
             </button>
@@ -112,6 +120,8 @@ export default function Layout() {
         <Outlet />
       </main>
 
+      <LiveSimulatorButton />
+
       <nav className="fixed bottom-0 inset-x-0 z-30 bg-ink-800 border-t border-ink-700">
         <div className="max-w-2xl mx-auto grid grid-cols-5">
           {navItems.map(i => (
@@ -121,7 +131,7 @@ export default function Layout() {
               end={i.to === '/'}
               className={({ isActive }) =>
                 `flex flex-col items-center justify-center py-2 text-xs ${
-                  isActive ? 'text-accent-500' : 'text-ink-300'
+                  isActive ? 'text-brand-500' : 'text-ink-300'
                 }`
               }
             >

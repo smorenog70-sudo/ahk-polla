@@ -3,6 +3,8 @@ import { AuthProvider, useAuth } from './lib/auth'
 import Layout from './components/Layout'
 import Login from './pages/Login'
 import Signup from './pages/Signup'
+import ForgotPassword from './pages/ForgotPassword'
+import ResetPassword from './pages/ResetPassword'
 import Home from './pages/Home'
 import Predictions from './pages/Predictions'
 import GroupsPredictions from './pages/GroupsPredictions'
@@ -14,17 +16,19 @@ import Profile from './pages/Profile'
 import Duel from './pages/Duel'
 import ActivityWall from './pages/ActivityWall'
 import Progress from './pages/Progress'
+import Simulator from './pages/Simulator'
+import GroupTables from './pages/GroupTables'
+import DataLab from './pages/DataLab'
 import FechaRecap from './pages/FechaRecap'
 import Bracket from './pages/Bracket'
 import MatchReplay from './pages/MatchReplay'
-import ForgotPassword from './pages/ForgotPassword'
-import ResetPassword from './pages/ResetPassword'
+import AdminBracket from './pages/AdminBracket'
 import AdminResults from './pages/AdminResults'
 import AdminGroupResults from './pages/AdminGroupResults'
 import AdminThirds from './pages/AdminThirds'
 import AdminUsers from './pages/AdminUsers'
 import AdminConfig from './pages/AdminConfig'
-import AdminBracket from './pages/AdminBracket'
+import AdminDashboard from './pages/AdminDashboard'
 
 function Protected({ children, adminOnly = false }) {
   const { user, profile, loading } = useAuth()
@@ -49,14 +53,19 @@ export default function App() {
           <Route path="terceros" element={<ThirdsPredictions />} />
           <Route path="tabla" element={<Standings />} />
           <Route path="comunidad" element={<CommunityStats />} />
-          <Route path="muro" element={<ActivityWall />} />
-          <Route path="duelo" element={<Duel />} />
           <Route path="progreso" element={<Progress />} />
+          <Route path="progreso/:userId" element={<Progress />} />
+          <Route path="simulador" element={<Simulator />} />
+          <Route path="grupos-mundial" element={<GroupTables />} />
+          <Route path="laboratorio" element={<DataLab />} />
           <Route path="resumen" element={<FechaRecap />} />
           <Route path="bracket" element={<Bracket />} />
           <Route path="revive" element={<MatchReplay />} />
+          <Route path="muro" element={<ActivityWall />} />
+          <Route path="duelo" element={<Duel />} />
           <Route path="perfil" element={<Profile />} />
           <Route path="reglas" element={<Rules />} />
+          <Route path="admin/dashboard" element={<Protected adminOnly><AdminDashboard /></Protected>} />
           <Route path="admin/marcadores" element={<Protected adminOnly><AdminResults /></Protected>} />
           <Route path="admin/grupos" element={<Protected adminOnly><AdminGroupResults /></Protected>} />
           <Route path="admin/terceros" element={<Protected adminOnly><AdminThirds /></Protected>} />

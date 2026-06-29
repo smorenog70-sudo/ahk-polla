@@ -1,7 +1,6 @@
 import { useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { supabase } from '../lib/supabase'
-import { BRAND } from '../lib/brand'
 
 export default function Login() {
   const [email, setEmail] = useState('')
@@ -27,9 +26,9 @@ export default function Login() {
     <div className="min-h-screen flex items-center justify-center p-6">
       <form onSubmit={onSubmit} className="card w-full max-w-sm space-y-4">
         <div className="text-center mb-2">
-          <img src="/logo.png" alt={BRAND.name} className="w-24 h-24 mx-auto mb-3 rounded-full bg-white p-1" />
-          <h1 className="text-2xl font-bold">{BRAND.name}</h1>
-          <p className="text-sm text-ink-300">{BRAND.tagline}</p>
+          <img src="/logo.png" alt="Polla AHK" className="w-24 h-24 mx-auto mb-3 rounded-full bg-white p-1" />
+          <h1 className="text-2xl font-bold">Polla AHK</h1>
+          <p className="text-sm text-ink-300">Polla Mundialista 2026</p>
         </div>
 
         <div>
@@ -62,14 +61,14 @@ export default function Login() {
         </button>
 
         <div className="text-center">
-          <Link to="/recuperar" className="text-sm text-accent-500 hover:underline">
+          <Link to="/recuperar" className="text-sm text-brand-500 hover:underline">
             ¿Olvidaste tu contraseña?
           </Link>
         </div>
 
         <div className="text-center text-sm text-ink-300">
           ¿No tienes cuenta?{' '}
-          <Link to="/signup" className="text-accent-500 hover:underline">
+          <Link to="/signup" className="text-brand-500 hover:underline">
             Regístrate
           </Link>
         </div>

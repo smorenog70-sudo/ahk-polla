@@ -84,9 +84,9 @@ export default function PendingMatchesBanner({ userPredictions = [] }) {
     ? 'card border-red-500/60 bg-red-900/30 animate-pulse'
     : isUrgent
       ? 'card border-orange-500/60 bg-orange-900/30'
-      : 'card border-accent-500/40 bg-accent-500/10'
+      : 'card border-brand-500/40 bg-brand-500/10'
 
-  const titleColor = isCritical ? 'text-red-300' : isUrgent ? 'text-orange-300' : 'text-accent-400'
+  const titleColor = isCritical ? 'text-red-300' : isUrgent ? 'text-orange-300' : 'text-brand-500'
 
   return (
     <Link to="/predicciones" className={`block ${wrapClass} hover:opacity-90 transition`}>

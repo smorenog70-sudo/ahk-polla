@@ -5,7 +5,7 @@ import { supabase } from './supabase'
  * Trae TODAS las filas de una tabla, paginando de a 1000.
  * Supabase limita cada select a 1000 filas por defecto; sin esto,
  * con muchos usuarios las predicciones se cargaban incompletas y
- * algunos jugadores no recibían sus puntos.
+ * algunos jugadores no recibían sus puntos (bug de "a unos sí, a otros no").
  */
 async function fetchAll(table, selectCols = '*') {
   const PAGE = 1000
@@ -21,12 +21,15 @@ async function fetchAll(table, selectCols = '*') {
       break
     }
     all = all.concat(data || [])
-    if (!data || data.length < PAGE) break
+    if (!data || data.length < PAGE) break  // última página
     from += PAGE
   }
   return all
 }
 
+/**
+ * Loads all the data needed for the standings / overview screens.
+ */
 export function useLeagueData() {
   const [state, setState] = useState({
     profiles: [],
@@ -36,13 +39,14 @@ export function useLeagueData() {
     groupResults: [],
     thirdPreds: [],
     thirdResults: [],
+    fines: [],
     config: {},
     loading: true,
   })
 
   const load = useCallback(async () => {
     setState(s => ({ ...s, loading: true }))
-    const [profiles, preds, results, gp, gr, tp, tr, cfgRows] = await Promise.all([
+    const [profiles, preds, results, gp, gr, tp, tr, fines, cfgRows] = await Promise.all([
       fetchAll('profiles'),
       fetchAll('predictions'),
       fetchAll('results'),
@@ -50,6 +54,7 @@ export function useLeagueData() {
       fetchAll('group_results'),
       fetchAll('third_predictions'),
       fetchAll('third_results'),
+      fetchAll('fines'),
       fetchAll('config'),
     ])
 
@@ -64,6 +69,7 @@ export function useLeagueData() {
       groupResults: gr || [],
       thirdPreds: tp || [],
       thirdResults: tr || [],
+      fines: fines || [],
       config,
       loading: false,
     })

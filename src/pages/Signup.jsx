@@ -1,7 +1,6 @@
 import { useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { supabase } from '../lib/supabase'
-import { BRAND } from '../lib/brand'
 
 export default function Signup() {
   const [name, setName] = useState('')
@@ -36,9 +35,9 @@ export default function Signup() {
     <div className="min-h-screen flex items-center justify-center p-6">
       <form onSubmit={onSubmit} className="card w-full max-w-sm space-y-4">
         <div className="text-center mb-2">
-          <img src="/logo.png" alt={BRAND.name} className="w-24 h-24 mx-auto mb-3 rounded-full bg-white p-1" />
+          <img src="/logo.png" alt="Polla AHK" className="w-24 h-24 mx-auto mb-3 rounded-full bg-white p-1" />
           <h1 className="text-2xl font-bold">Crear cuenta</h1>
-          <p className="text-sm text-ink-300">{BRAND.name}</p>
+          <p className="text-sm text-ink-300">Copa Interna AHK 2026</p>
         </div>
 
         <div>
@@ -48,7 +47,7 @@ export default function Signup() {
             onChange={e => setName(e.target.value)}
             className="input"
             required
-            placeholder="Ej. María García"
+            placeholder="Santiago Moreno"
           />
         </div>
         <div>
@@ -81,13 +80,9 @@ export default function Signup() {
           {loading ? 'Creando…' : 'Crear cuenta'}
         </button>
 
-        <p className="text-xs text-ink-500 text-center">
-          Participación gratuita. Solo necesitas tu correo para entrar.
-        </p>
-
         <div className="text-center text-sm text-ink-300">
           ¿Ya tienes cuenta?{' '}
-          <Link to="/login" className="text-accent-500 hover:underline">
+          <Link to="/login" className="text-brand-500 hover:underline">
             Inicia sesión
           </Link>
         </div>

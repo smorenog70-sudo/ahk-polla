@@ -71,7 +71,7 @@ export default function FechaRecap() {
         await navigator.share({
           files: [file],
           title: 'Mi resumen de la fecha',
-          text: `Mi resumen de ${recap.summary.label} en la Polla Mundialista 2026`,
+          text: `Mi resumen de ${recap.summary.label} en la Polla AHK`,
         })
         setMsg('✅ Compartido')
       } else {
@@ -195,7 +195,7 @@ function frase(points) {
 }
 
 /**
- * Dibuja la imagen del resumen para compartir (estilo AHK azul/dorado).
+ * Dibuja la imagen del resumen para compartir (estilo Polla AHK azul).
  */
 async function renderRecapImage(recap, me) {
   const W = 1080, H = 1080
@@ -204,12 +204,12 @@ async function renderRecapImage(recap, me) {
   const ctx = canvas.getContext('2d')
 
   const grad = ctx.createLinearGradient(0, 0, 0, H)
-  grad.addColorStop(0, '#152849')
-  grad.addColorStop(0.5, '#0c1830')
-  grad.addColorStop(1, '#0c1830')
+  grad.addColorStop(0, '#7c2d12')
+  grad.addColorStop(0.5, '#0f172a')
+  grad.addColorStop(1, '#0f172a')
   ctx.fillStyle = grad
   ctx.fillRect(0, 0, W, H)
-  ctx.fillStyle = '#2E5DA8'
+  ctx.fillStyle = '#1F3A6E'
   ctx.fillRect(0, 0, W, 12)
 
   // Logo
@@ -225,9 +225,9 @@ async function renderRecapImage(recap, me) {
   } catch (e) { /* sin logo */ }
 
   ctx.textAlign = 'center'
-  ctx.fillStyle = '#F5B400'
+  ctx.fillStyle = '#2E5DA8'
   ctx.font = 'bold 40px -apple-system, system-ui, sans-serif'
-  ctx.fillText('POLLA MUNDIALISTA 2026', W / 2, 300)
+  ctx.fillText('DARI-POLLA', W / 2, 300)
   ctx.fillStyle = '#cbd5e1'
   ctx.font = '26px -apple-system, system-ui, sans-serif'
   ctx.fillText(`Resumen · ${recap.summary.label}`, W / 2, 345)
@@ -252,8 +252,8 @@ async function renderRecapImage(recap, me) {
   for (const s of stats) {
     ctx.fillStyle = 'rgba(255,255,255,0.06)'
     roundRect(ctx, sx, sy, boxW, 200, 20); ctx.fill()
-    ctx.strokeStyle = '#F5B400'; ctx.lineWidth = 2; ctx.stroke()
-    ctx.fillStyle = '#F5C547'
+    ctx.strokeStyle = '#1F3A6E'; ctx.lineWidth = 2; ctx.stroke()
+    ctx.fillStyle = '#4d7bc0'
     ctx.font = 'bold 80px -apple-system, system-ui, sans-serif'
     ctx.fillText(s.v, sx + boxW / 2, sy + 110)
     ctx.fillStyle = '#cbd5e1'
@@ -274,14 +274,14 @@ async function renderRecapImage(recap, me) {
       `${b.match.team1} ${b.result.score1}-${b.result.score2} ${b.match.team2}`,
       W / 2, 840
     )
-    ctx.fillStyle = '#F5C547'
+    ctx.fillStyle = '#4d7bc0'
     ctx.font = 'bold 30px -apple-system, system-ui, sans-serif'
     ctx.fillText(`+${b.points} pts`, W / 2, 885)
   }
 
   ctx.fillStyle = 'rgba(255,255,255,0.4)'
   ctx.font = '22px -apple-system, system-ui, sans-serif'
-  ctx.fillText('Polla Mundialista 2026', W / 2, 1020)
+  ctx.fillText('🏆 Polla AHK · Mundial 2026', W / 2, 1020)
 
   return canvas
 }

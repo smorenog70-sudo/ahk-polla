@@ -56,7 +56,7 @@ export default function MatchSocial({ match, user, profile, profilesById, isAdmi
               onClick={() => setReaction(emoji)}
               className={`text-sm px-2 py-1 rounded-full transition ${
                 active
-                  ? 'bg-brand-600 ring-1 ring-accent-400'
+                  ? 'bg-brand-600 ring-1 ring-brand-400'
                   : 'bg-ink-700 hover:bg-ink-600'
               }`}
             >

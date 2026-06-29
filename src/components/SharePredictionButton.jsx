@@ -1,6 +1,5 @@
-import { useRef, useState } from 'react'
+import { useState } from 'react'
 import { formatKickoff } from '../lib/matches'
-import { BRAND } from '../lib/brand'
 
 /**
  * Genera una imagen con el pronóstico del usuario usando Canvas
@@ -9,7 +8,6 @@ import { BRAND } from '../lib/brand'
 export default function SharePredictionButton({ match, prediction, userName }) {
   const [busy, setBusy] = useState(false)
   const [msg, setMsg] = useState('')
-  const canvasRef = useRef(null)
 
   // No mostrar si no hay pronóstico
   if (!prediction || prediction.score1 == null || prediction.score2 == null) {
@@ -24,55 +22,56 @@ export default function SharePredictionButton({ match, prediction, userName }) {
     canvas.height = H
     const ctx = canvas.getContext('2d')
 
-    // Fondo azul AHK con gradiente
+    // Fondo azul Polla AHK con gradiente
     const grad = ctx.createLinearGradient(0, 0, 0, H)
-    grad.addColorStop(0, '#1F3A6E')
-    grad.addColorStop(1, '#0c1830')
+    grad.addColorStop(0, '#7c2d12')   // brand-900
+    grad.addColorStop(0.5, '#0f172a') // ink-900
+    grad.addColorStop(1, '#0f172a')
     ctx.fillStyle = grad
     ctx.fillRect(0, 0, W, H)
 
-    // Acento dorado en la parte superior
-    ctx.fillStyle = '#F5B400'
+    // Acento azul brillante en la parte superior
+    ctx.fillStyle = '#1F3A6E' // brand-600
     ctx.fillRect(0, 0, W, 12)
 
     // Cargar logo
     try {
       const logo = await loadImage('/logo.png')
-      const logoSize = 140
+      const logoSize = 160
       ctx.save()
       // fondo blanco circular para el logo
       ctx.beginPath()
-      ctx.arc(W / 2, 160, logoSize / 2 + 8, 0, Math.PI * 2)
+      ctx.arc(W / 2, 180, logoSize / 2 + 10, 0, Math.PI * 2)
       ctx.fillStyle = 'white'
       ctx.fill()
       ctx.beginPath()
-      ctx.arc(W / 2, 160, logoSize / 2, 0, Math.PI * 2)
+      ctx.arc(W / 2, 180, logoSize / 2, 0, Math.PI * 2)
       ctx.clip()
-      ctx.drawImage(logo, W / 2 - logoSize / 2, 160 - logoSize / 2, logoSize, logoSize)
+      ctx.drawImage(logo, W / 2 - logoSize / 2, 180 - logoSize / 2, logoSize, logoSize)
       ctx.restore()
     } catch (e) { /* sigue sin logo */ }
 
     // Título
-    ctx.fillStyle = '#F5B400'
-    ctx.font = 'bold 36px -apple-system, system-ui, sans-serif'
+    ctx.fillStyle = '#2E5DA8' // brand-500
+    ctx.font = 'bold 42px -apple-system, system-ui, sans-serif'
     ctx.textAlign = 'center'
-    ctx.fillText(BRAND.name.toUpperCase(), W / 2, 290)
-    ctx.fillStyle = '#D3D9DF'
+    ctx.fillText('DARI-POLLA', W / 2, 320)
+    ctx.fillStyle = '#cbd5e1' // ink-300
     ctx.font = '24px -apple-system, system-ui, sans-serif'
-    ctx.fillText('Mi pronóstico · Mundial 2026', W / 2, 330)
+    ctx.fillText('Mi pronóstico · Mundial 2026', W / 2, 360)
 
     // Caja del partido
-    const boxY = 400
+    const boxY = 420
     const boxH = 360
     ctx.fillStyle = 'rgba(255,255,255,0.06)'
     roundRect(ctx, 80, boxY, W - 160, boxH, 24)
     ctx.fill()
-    ctx.strokeStyle = '#F5B400'
-    ctx.lineWidth = 2
+    ctx.strokeStyle = '#1F3A6E'
+    ctx.lineWidth = 3
     ctx.stroke()
 
     // Stage / fecha
-    ctx.fillStyle = '#D3D9DF'
+    ctx.fillStyle = '#cbd5e1'
     ctx.font = '22px -apple-system, system-ui, sans-serif'
     ctx.textAlign = 'center'
     const stageLabel = match.group ? `Grupo ${match.group}` : stageDisplay(match.stage)
@@ -92,29 +91,29 @@ export default function SharePredictionButton({ match, prediction, userName }) {
     ctx.fillText(truncate(match.team2, 16), W / 2 + 60, boxY + 270)
 
     // Fecha del partido
-    ctx.fillStyle = '#D3D9DF'
+    ctx.fillStyle = '#cbd5e1'
     ctx.font = '22px -apple-system, system-ui, sans-serif'
     ctx.textAlign = 'center'
     ctx.fillText(formatKickoff(match.kickoff_utc), W / 2, boxY + 330)
 
     // Jugador
     if (userName) {
-      ctx.fillStyle = '#F5B400'
+      ctx.fillStyle = '#2E5DA8'
       ctx.font = 'bold 32px -apple-system, system-ui, sans-serif'
       ctx.textAlign = 'center'
-      ctx.fillText(`— ${userName} —`, W / 2, 840)
+      ctx.fillText(`— ${userName} —`, W / 2, 860)
     }
 
     // Tagline
-    ctx.fillStyle = '#D3D9DF'
+    ctx.fillStyle = '#cbd5e1'
     ctx.font = '24px -apple-system, system-ui, sans-serif'
     ctx.textAlign = 'center'
-    ctx.fillText('¿Estás de acuerdo? Únete y compite 🏆', W / 2, 920)
+    ctx.fillText('¿Estás de acuerdo? Únete y compite 🏆', W / 2, 930)
 
     // Branding inferior
-    ctx.fillStyle = 'rgba(255,255,255,0.4)'
-    ctx.font = '20px -apple-system, system-ui, sans-serif'
-    ctx.fillText(`${BRAND.name} · Mundial 2026`, W / 2, 1020)
+    ctx.fillStyle = 'rgba(255,255,255,0.35)'
+    ctx.font = '22px -apple-system, system-ui, sans-serif'
+    ctx.fillText('🏆 Polla AHK · Mundial 2026', W / 2, 1020)
 
     return canvas
   }
@@ -131,7 +130,7 @@ export default function SharePredictionButton({ match, prediction, userName }) {
       if (navigator.canShare && navigator.canShare({ files: [file] })) {
         await navigator.share({
           files: [file],
-          title: `Mi pronóstico ${BRAND.name}`,
+          title: 'Mi pronóstico Polla AHK',
           text: `${match.team1} ${prediction.score1}-${prediction.score2} ${match.team2} — Mi pronóstico para el Mundial 2026`,
         })
         setMsg('✅ Compartido')

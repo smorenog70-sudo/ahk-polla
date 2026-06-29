@@ -28,18 +28,18 @@ export default function AdminUsers() {
 
   if (loading) return <div className="text-center text-ink-300 py-8">Cargando…</div>
 
-  const adminCount = users.filter(u => u.is_admin).length
+  const paidCount = users.filter(u => u.paid).length
 
   return (
     <div className="space-y-3">
       <div className="card">
         <h1 className="text-xl font-bold mb-1">🔧 Usuarios</h1>
         <p className="text-xs text-ink-300">
-          Lista de participantes registrados. Aquí puedes nombrar otros admins.
+          Confirma los participantes y nombra otros admins.
         </p>
         <div className="mt-2 flex items-center justify-between text-sm">
           <span>Total: {users.length}</span>
-          <span className="text-accent-500 font-medium">{adminCount} admin{adminCount !== 1 ? 's' : ''}</span>
+          <span className="text-brand-500 font-medium">{paidCount} confirmados</span>
         </div>
       </div>
 
@@ -50,12 +50,18 @@ export default function AdminUsers() {
           <div key={u.id} className="p-3 border-b border-ink-700 last:border-b-0">
             <div className="font-medium">{u.display_name}</div>
             <div className="text-xs text-ink-500 mt-0.5 break-all">{u.id.slice(0, 8)}…</div>
-            <div className="mt-3">
+            <div className="mt-3 grid grid-cols-2 gap-2">
+              <button
+                onClick={() => toggle(u.id, 'paid', !u.paid)}
+                className={`btn ${u.paid ? 'btn-ghost' : 'btn-primary'}`}
+              >
+                {u.paid ? '✅ Confirmado' : '📝 Confirmar'}
+              </button>
               <button
                 onClick={() => toggle(u.id, 'is_admin', !u.is_admin)}
-                className={`btn ${u.is_admin ? 'btn-primary' : 'btn-ghost'} w-full`}
+                className={`btn ${u.is_admin ? 'btn-ghost' : 'btn-ghost'}`}
               >
-                {u.is_admin ? '👑 Admin (quitar)' : 'Hacer admin'}
+                {u.is_admin ? '👑 Admin' : 'Hacer admin'}
               </button>
             </div>
           </div>

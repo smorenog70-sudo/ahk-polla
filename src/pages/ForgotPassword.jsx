@@ -28,7 +28,7 @@ export default function ForgotPassword() {
     <div className="min-h-screen flex items-center justify-center p-6">
       <div className="card w-full max-w-sm space-y-4">
         <div className="text-center mb-2">
-          <img src="/logo.png" alt="Polla Mundialista 2026" className="w-20 h-20 mx-auto mb-3 rounded-full bg-white p-1" />
+          <img src="/logo.png" alt="Polla AHK" className="w-20 h-20 mx-auto mb-3 rounded-full bg-white p-1" />
           <h1 className="text-xl font-bold">Recuperar contraseña</h1>
         </div>
 

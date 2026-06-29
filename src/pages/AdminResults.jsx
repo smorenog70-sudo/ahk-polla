@@ -6,8 +6,13 @@ import {
   groupedMatches,
   formatKickoff,
 } from '../lib/matches'
+import { resolveTeam, autoResolveGroupPositions } from '../lib/bracketTeams'
+import { computeGroupTables } from '../lib/groupTables'
+import { liveStatus } from '../lib/liveStatus'
+import { useNowTick } from '../lib/useNowTick'
 
 const TABS = [
+  { id: 'today', label: '⚡ Hoy' },
   { id: 'F1', label: 'Fecha 1' },
   { id: 'F2', label: 'Fecha 2' },
   { id: 'F3', label: 'Fecha 3' },
@@ -21,9 +26,11 @@ const TABS = [
 
 export default function AdminResults() {
   const { user } = useAuth()
-  const [tab, setTab] = useState('F1')
+  const [tab, setTab] = useState('today')
+  const nowMs = useNowTick(30000) // refresca el estado "en vivo" cada 30s
   const [results, setResults] = useState({}) // match_id -> {score1, score2}
   const [original, setOriginal] = useState({})
+  const [config, setConfig] = useState({})
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
   const [msg, setMsg] = useState('')
@@ -32,15 +39,41 @@ export default function AdminResults() {
     setLoading(true)
     const { data } = await supabase.from('results').select('*')
     const map = {}
-    for (const r of data || []) map[r.match_id] = { score1: r.score1, score2: r.score2 }
+    for (const r of data || []) map[r.match_id] = { score1: r.score1, score2: r.score2, advances: r.advances ?? null }
     setResults(map)
     setOriginal(JSON.parse(JSON.stringify(map)))
+    // Cargar config para resolver nombres de playoffs (bracket_teams)
+    const { data: cfg } = await supabase.from('config').select('*')
+    const cfgMap = {}
+    for (const c of cfg || []) cfgMap[c.key] = c.value
+    setConfig(cfgMap)
     setLoading(false)
   }
   useEffect(() => { load() }, [])
 
+  // Resolver nombres de playoffs: auto de grupos cerrados + manual del admin
+  const bracketTeams = useMemo(() => {
+    const resultsById = new Map(Object.entries(results).map(([id, r]) => [id, r]))
+    const gt = computeGroupTables(resultsById)
+    const auto = autoResolveGroupPositions(gt)
+    return { ...auto, ...(config.bracket_teams || {}) }
+  }, [results, config.bracket_teams])
+
+  const teamName = (m, side) => {
+    if (m.stage === 'group') return m[side]
+    const raw = side === 'team1' ? (m.team1_raw || m.team1) : (m.team2_raw || m.team2)
+    return resolveTeam(raw, bracketTeams)
+  }
+
   const matches = useMemo(() => {
     const all = groupedMatches()
+    if (tab === 'today') {
+      // Partidos cuyo kickoff es HOY (hora local), ordenados por hora
+      const todayKey = new Date().toLocaleDateString('en-CA')
+      return TOURNAMENT.matches
+        .filter(m => m.kickoff_utc && new Date(m.kickoff_utc).toLocaleDateString('en-CA') === todayKey)
+        .sort((a, b) => new Date(a.kickoff_utc) - new Date(b.kickoff_utc))
+    }
     if (tab === 'F1') return all.group[1]
     if (tab === 'F2') return all.group[2]
     if (tab === 'F3') return all.group[3]
@@ -56,6 +89,13 @@ export default function AdminResults() {
   const set = (id, field, val) => {
     const v = val === '' ? '' : Math.max(0, Math.min(30, parseInt(val) || 0))
     setResults(prev => ({ ...prev, [id]: { ...prev[id], [field]: v } }))
+  }
+
+  const setAdvances = (id, who) => {
+    setResults(prev => ({
+      ...prev,
+      [id]: { ...prev[id], advances: prev[id]?.advances === who ? null : who },
+    }))
   }
 
   const clear = (id) => {
@@ -78,11 +118,21 @@ export default function AdminResults() {
       const r = results[id]
       const o = original[id]
       if (r && r.score1 !== '' && r.score2 !== '' && r.score1 != null && r.score2 != null) {
-        if (!o || o.score1 !== r.score1 || o.score2 !== r.score2) {
+        const m = TOURNAMENT.matches.find(x => x.id === id)
+        // Quién pasó efectivo: lo fuerza el marcador salvo empate a 90 (tiempo extra o penales)
+        let effectiveAdvances = null
+        if (m && m.stage !== 'group') {
+          const a = Number(r.score1), b = Number(r.score2)
+          if (a > b) effectiveAdvances = 'team1'
+          else if (b > a) effectiveAdvances = 'team2'
+          else effectiveAdvances = r.advances ?? null
+        }
+        if (!o || o.score1 !== r.score1 || o.score2 !== r.score2 || (o.advances ?? null) !== effectiveAdvances) {
           rows.push({
             match_id: id,
             score1: Number(r.score1),
             score2: Number(r.score2),
+            advances: effectiveAdvances,
             updated_at: new Date().toISOString(),
             updated_by: user.id,
           })
@@ -142,7 +192,24 @@ export default function AdminResults() {
       {matches.map(m => (
         <div key={m.id} className="card mb-2">
           <div className="flex items-center justify-between text-xs text-ink-300 mb-2">
-            <span>{m.group ? `Grupo ${m.group} · ` : ''}{formatKickoff(m.kickoff_utc)}</span>
+            <span className="flex items-center gap-1.5">
+              {m.group ? `Grupo ${m.group} · ` : ''}{formatKickoff(m.kickoff_utc)}
+              {(() => {
+                const st = liveStatus(m.kickoff_utc, nowMs)
+                if (st && st.live && !results[m.id]) {
+                  return (
+                    <span className="inline-flex items-center gap-1 text-red-400 font-semibold">
+                      <span className="relative flex h-1.5 w-1.5">
+                        <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75" />
+                        <span className="relative inline-flex rounded-full h-1.5 w-1.5 bg-red-500" />
+                      </span>
+                      {st.label}
+                    </span>
+                  )
+                }
+                return null
+              })()}
+            </span>
             {results[m.id] && (
               <button onClick={() => clear(m.id)} className="text-red-400 text-xs hover:underline">
                 Limpiar
@@ -150,7 +217,7 @@ export default function AdminResults() {
             )}
           </div>
           <div className="flex items-center gap-2">
-            <div className="flex-1 text-right text-sm font-medium">{m.team1}</div>
+            <div className="flex-1 text-right text-sm font-medium">{teamName(m, 'team1')}</div>
             <input
               type="number" min="0" max="30" inputMode="numeric"
               value={results[m.id]?.score1 ?? ''}
@@ -166,8 +233,48 @@ export default function AdminResults() {
               className="input w-14 text-center px-1 py-2"
               placeholder="-"
             />
-            <div className="flex-1 text-left text-sm font-medium">{m.team2}</div>
+            <div className="flex-1 text-left text-sm font-medium">{teamName(m, 'team2')}</div>
           </div>
+
+          {/* PLAYOFFS: quién pasó (cubre tiempo extra o penales). Solo en eliminación. */}
+          {m.stage !== 'group' && (() => {
+            const r = results[m.id]
+            const s1 = r?.score1, s2 = r?.score2
+            const bothFilled = s1 !== '' && s2 !== '' && s1 != null && s2 != null
+            const isDraw = bothFilled && Number(s1) === Number(s2)
+            const forced = bothFilled && !isDraw
+              ? (Number(s1) > Number(s2) ? 'team1' : 'team2')
+              : null
+            const effective = forced || (isDraw ? r?.advances : null)
+            const enabled = isDraw
+            const btnClass = (who) => `flex-1 text-xs py-1.5 rounded-lg border transition ${
+              effective === who
+                ? 'bg-green-700 border-green-500 text-white font-semibold'
+                : 'bg-ink-800 border-ink-600 text-ink-300'
+            } ${!enabled ? 'cursor-default opacity-90' : ''}`
+            return (
+              <div className="mt-2 bg-ink-900/40 rounded-lg p-2">
+                <div className="text-[10px] text-ink-400 text-center mb-1.5">
+                  ¿Quién pasó? <span className="text-ink-500">(+10 pts; elige solo si empataron a los 90)</span>
+                </div>
+                <div className="flex gap-1.5">
+                  <button type="button" disabled={!enabled} onClick={() => enabled && setAdvances(m.id, 'team1')} className={btnClass('team1')}>
+                    {teamName(m, 'team1')}
+                  </button>
+                  <button type="button" disabled={!enabled} onClick={() => enabled && setAdvances(m.id, 'team2')} className={btnClass('team2')}>
+                    {teamName(m, 'team2')}
+                  </button>
+                </div>
+                {!bothFilled ? (
+                  <div className="text-[10px] text-ink-500 text-center mt-1.5">Pon el marcador de 90 min primero.</div>
+                ) : forced ? (
+                  <div className="text-[10px] text-ink-500 text-center mt-1.5">Lo define el marcador.</div>
+                ) : (
+                  <div className="text-[10px] text-yellow-300 text-center mt-1.5">⚖️ Empate a los 90: marca quién pasó (en tiempo extra o penales).</div>
+                )}
+              </div>
+            )
+          })()}
         </div>
       ))}
 

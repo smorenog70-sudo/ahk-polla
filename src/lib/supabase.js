@@ -14,6 +14,6 @@ export const supabase = createClient(url, key, {
     autoRefreshToken: true,
     detectSessionInUrl: true,
     storage: typeof window !== 'undefined' ? window.localStorage : undefined,
-    storageKey: 'ahk-copa-interna-auth',
+    storageKey: 'polla-ahk-auth',
   },
 })

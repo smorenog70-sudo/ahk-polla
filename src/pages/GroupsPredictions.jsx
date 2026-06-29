@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from 'react'
 import { supabase } from '../lib/supabase'
 import { useAuth } from '../lib/auth'
 import { TOURNAMENT } from '../lib/matches'
+import { teamWithFlag } from '../lib/flags'
 
 const LETTERS = 'ABCDEFGHIJKL'.split('')
 
@@ -23,7 +24,7 @@ function GroupCard({ letter, teams, picks, actuals, onChange, locked }) {
           const wrong = actualPos && picks[t] && picks[t] !== actualPos
           return (
             <div key={t} className="flex items-center gap-2">
-              <span className="flex-1 text-sm">{t}</span>
+              <span className="flex-1 text-sm">{teamWithFlag(t)}</span>
               {actualPos && (
                 <span className="text-xs text-ink-500">Real: {actualPos}º</span>
               )}
@@ -61,6 +62,7 @@ export default function GroupsPredictions() {
   const [original, setOriginal] = useState({})
   const [actuals, setActuals] = useState({}) // letter -> { team -> position }
   const [knockoutsEnabled, setKnockoutsEnabled] = useState(false)
+  const [predictionsLocked, setPredictionsLocked] = useState(false)
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
   const [msg, setMsg] = useState('')
@@ -70,7 +72,7 @@ export default function GroupsPredictions() {
     const [gp, gr, cfg] = await Promise.all([
       supabase.from('group_predictions').select('*').eq('user_id', user.id),
       supabase.from('group_results').select('*'),
-      supabase.from('config').select('*').eq('key', 'knockouts_enabled').maybeSingle(),
+      supabase.from('config').select('*'),
     ])
     const p = {}
     for (const r of gp.data || []) {
@@ -87,7 +89,10 @@ export default function GroupsPredictions() {
     }
     setActuals(a)
 
-    setKnockoutsEnabled(cfg.data?.value === true)
+    const cfgMap = {}
+    for (const r of cfg.data || []) cfgMap[r.key] = r.value
+    setKnockoutsEnabled(cfgMap.knockouts_enabled === true)
+    setPredictionsLocked(cfgMap.predictions_locked === true)
     setLoading(false)
   }
 
@@ -95,7 +100,7 @@ export default function GroupsPredictions() {
 
   // Lock once knockouts enabled OR first group match is locked (within 10 min).
   // For simplicity: when knockouts_enabled is true, group predictions are frozen.
-  const locked = knockoutsEnabled
+  const locked = knockoutsEnabled || predictionsLocked
 
   const dirty = useMemo(() => JSON.stringify(picks) !== JSON.stringify(original), [picks, original])
 
@@ -161,7 +166,9 @@ export default function GroupsPredictions() {
         </p>
         {locked && (
           <div className="mt-2 text-xs text-yellow-300">
-            🔒 Bloqueado: la fase de grupos ya terminó.
+            {predictionsLocked
+              ? '🔒 Bloqueado temporalmente por el administrador.'
+              : '🔒 Bloqueado: la fase de grupos ya terminó.'}
           </div>
         )}
       </div>

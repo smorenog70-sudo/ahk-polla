@@ -1,5 +1,5 @@
 -- ============================================================================
--- AHK Copa Interna · Polla Mundial 2026 · Schema para Supabase
+-- Dari-polla · Schema para Supabase
 -- ============================================================================
 -- Ejecuta este archivo completo en: Supabase Dashboard → SQL Editor → New Query
 -- ============================================================================
@@ -11,7 +11,7 @@ create table if not exists profiles (
   nickname text,
   avatar text default '⚽',
   is_admin boolean not null default false,
-  paid boolean not null default true,        -- participación gratuita para AHK
+  paid boolean not null default false,        -- admin marca cuando confirma los 50k COP
   created_at timestamptz not null default now()
 );
 
@@ -40,7 +40,7 @@ create policy "profiles_admin_update" on profiles
 create table if not exists predictions (
   id bigserial primary key,
   user_id uuid not null references auth.users(id) on delete cascade,
-  match_id text not null,
+  match_id text not null,             -- 'GA-F1-1', 'R32-73', 'FINAL', etc.
   score1 int not null check (score1 >= 0 and score1 <= 30),
   score2 int not null check (score2 >= 0 and score2 <= 30),
   created_at timestamptz not null default now(),
@@ -90,7 +90,7 @@ create policy "results_admin_write" on results
 create table if not exists group_predictions (
   id bigserial primary key,
   user_id uuid not null references auth.users(id) on delete cascade,
-  group_letter text not null,
+  group_letter text not null,           -- 'A'..'L'
   team text not null,
   position int not null check (position between 1 and 4),
   created_at timestamptz not null default now(),
@@ -164,7 +164,46 @@ create policy "tr_admin_write" on third_results
   for all using (exists (select 1 from profiles p where p.id = auth.uid() and p.is_admin))
   with check (exists (select 1 from profiles p where p.id = auth.uid() and p.is_admin));
 
--- 8. CONFIGURACIÓN
+-- 8. MULTAS (admin cierra fecha y se cargan automáticamente)
+create table if not exists fines (
+  id bigserial primary key,
+  user_id uuid not null references auth.users(id) on delete cascade,
+  fecha_id text not null,               -- 'group-F1', 'group-F2', 'group-F3', 'r32', 'r16', 'qf', 'sf', 'third', 'final'
+  amount int not null default 5000,
+  created_at timestamptz not null default now(),
+  unique (user_id, fecha_id)
+);
+
+alter table fines enable row level security;
+
+drop policy if exists "fines_select_all" on fines;
+create policy "fines_select_all" on fines
+  for select using (auth.role() = 'authenticated');
+
+drop policy if exists "fines_admin_write" on fines;
+create policy "fines_admin_write" on fines
+  for all using (exists (select 1 from profiles p where p.id = auth.uid() and p.is_admin))
+  with check (exists (select 1 from profiles p where p.id = auth.uid() and p.is_admin));
+
+-- 9. ESTADO DE FECHAS CERRADAS (qué fechas/rondas ya fueron cerradas por admin)
+create table if not exists closed_fechas (
+  fecha_id text primary key,
+  closed_at timestamptz not null default now(),
+  closed_by uuid references auth.users(id)
+);
+
+alter table closed_fechas enable row level security;
+
+drop policy if exists "cf_select_all" on closed_fechas;
+create policy "cf_select_all" on closed_fechas
+  for select using (auth.role() = 'authenticated');
+
+drop policy if exists "cf_admin_write" on closed_fechas;
+create policy "cf_admin_write" on closed_fechas
+  for all using (exists (select 1 from profiles p where p.id = auth.uid() and p.is_admin))
+  with check (exists (select 1 from profiles p where p.id = auth.uid() and p.is_admin));
+
+-- 10. CONFIGURACIÓN (entry fee, multa, fases habilitadas)
 create table if not exists config (
   key text primary key,
   value jsonb not null
@@ -183,10 +222,12 @@ create policy "config_admin_write" on config
 
 -- Valores por defecto
 insert into config (key, value) values
+  ('entry_fee', '50000'::jsonb),
+  ('fine_amount', '5000'::jsonb),
   ('knockouts_enabled', 'false'::jsonb)
 on conflict (key) do nothing;
 
--- 9. COMENTARIOS EN PARTIDOS
+-- COMENTARIOS EN PARTIDOS
 create table if not exists match_comments (
   id bigserial primary key,
   match_id text not null,
@@ -213,7 +254,7 @@ create policy "mc_delete_own_or_admin" on match_comments
     or exists (select 1 from profiles p where p.id = auth.uid() and p.is_admin)
   );
 
--- 10. REACCIONES EN PARTIDOS (una por usuario por partido)
+-- REACCIONES EN PARTIDOS (una por usuario por partido)
 create table if not exists match_reactions (
   match_id text not null,
   user_id uuid not null references auth.users(id) on delete cascade,
@@ -231,7 +272,6 @@ drop policy if exists "mr_write_self" on match_reactions;
 create policy "mr_write_self" on match_reactions
   for all using (user_id = auth.uid()) with check (user_id = auth.uid());
 
--- ============================================================================
 -- TRIGGER: auto-crear profile cuando un user se registra
 -- ============================================================================
 create or replace function public.handle_new_user()
@@ -241,11 +281,10 @@ security definer
 set search_path = public
 as $$
 begin
-  insert into public.profiles (id, display_name, paid)
+  insert into public.profiles (id, display_name)
   values (
     new.id,
-    coalesce(new.raw_user_meta_data->>'display_name', split_part(new.email, '@', 1)),
-    true
+    coalesce(new.raw_user_meta_data->>'display_name', split_part(new.email, '@', 1))
   );
   return new;
 end;
@@ -261,5 +300,6 @@ create trigger on_auth_user_created
 -- 1. Pega este archivo entero en SQL Editor y dale "Run"
 -- 2. Crea tu cuenta normal en la app (signup)
 -- 3. Vuelve aquí al SQL Editor y ejecuta para hacerte admin:
---      update profiles set is_admin = true where display_name ilike '%TU_NOMBRE%';
+--      update profiles set is_admin = true, paid = true where display_name ilike '%dari%';
+--    (cambia el filtro al tuyo). Repite para los otros admins.
 -- ============================================================================

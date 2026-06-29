@@ -117,7 +117,7 @@ export default function Duel() {
                 <div className="mt-2 text-xs">
                   Duelo: <span className="text-brand-300">{comparison.myWins}</span>
                   {' - '}
-                  <span className="text-accent-400">{comparison.rivalWins}</span>
+                  <span className="text-sky-400">{comparison.rivalWins}</span>
                 </div>
                 {comparison.ties > 0 && (
                   <div className="text-[10px] text-ink-500">({comparison.ties} empates)</div>
@@ -126,7 +126,7 @@ export default function Duel() {
               <div>
                 <div className="text-3xl">{displayAvatar(rival)}</div>
                 <div className="text-sm font-medium truncate">{displayName(rival)}</div>
-                <div className="text-2xl font-bold text-accent-400 mt-1">{rivalTotal}</div>
+                <div className="text-2xl font-bold text-sky-400 mt-1">{rivalTotal}</div>
                 <div className="text-xs text-ink-500">puntos</div>
               </div>
             </div>
@@ -134,7 +134,7 @@ export default function Duel() {
               {myTotal > rivalTotal
                 ? <span className="text-brand-400">¡Vas ganando el duelo! 🎉</span>
                 : myTotal < rivalTotal
-                  ? <span className="text-accent-400">Vas perdiendo… ¡a remontar! 💪</span>
+                  ? <span className="text-sky-400">Vas perdiendo… ¡a remontar! 💪</span>
                   : <span className="text-ink-300">Empate técnico 🤝</span>}
             </div>
           </div>
@@ -170,7 +170,7 @@ export default function Duel() {
                   <div className="text-right">
                     <div className="font-mono">{rvP ? `${rvP.score1}-${rvP.score2}` : '—'}</div>
                     {rvPts != null && (
-                      <div className={`text-[10px] ${rvPts >= (myPts ?? 0) ? 'text-accent-400' : 'text-ink-500'}`}>
+                      <div className={`text-[10px] ${rvPts >= (myPts ?? 0) ? 'text-sky-400' : 'text-ink-500'}`}>
                         +{rvPts}
                       </div>
                     )}

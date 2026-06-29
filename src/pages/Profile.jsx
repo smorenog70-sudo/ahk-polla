@@ -77,7 +77,7 @@ export default function Profile() {
               key={emoji}
               onClick={() => setAvatar(emoji)}
               className={`text-2xl p-1.5 rounded-lg transition ${
-                avatar === emoji ? 'bg-brand-600 ring-2 ring-accent-400' : 'bg-ink-700 hover:bg-ink-600'
+                avatar === emoji ? 'bg-brand-600 ring-2 ring-brand-400' : 'bg-ink-700 hover:bg-ink-600'
               }`}
             >
               {emoji}

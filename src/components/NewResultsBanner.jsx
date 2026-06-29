@@ -9,18 +9,18 @@ export default function NewResultsBanner({ newResults, totalNewPoints, dismiss }
   const positivePoints = totalNewPoints > 0
 
   return (
-    <div className="card border-accent-500/60 bg-gradient-to-br from-brand-600 to-brand-700">
+    <div className="card border-brand-500/60 bg-gradient-to-br from-brand-600 to-brand-700">
       <div className="flex items-start gap-3">
         <div className="text-3xl">{positivePoints ? '🎉' : '📢'}</div>
         <div className="flex-1 min-w-0">
-          <div className="font-semibold text-accent-400">
+          <div className="font-semibold text-brand-500">
             {newResults.length === 1
               ? '¡Hay un resultado nuevo!'
               : `¡Hay ${newResults.length} resultados nuevos!`}
           </div>
           {matchesWithPoints.length > 0 && (
             <div className="text-sm text-ink-100 mt-1">
-              Ganaste <span className="font-bold text-accent-400">{totalNewPoints} puntos</span> en{' '}
+              Ganaste <span className="font-bold text-brand-500">{totalNewPoints} puntos</span> en{' '}
               {matchesWithPoints.length === 1 ? 'este partido' : `${matchesWithPoints.length} partidos`}
             </div>
           )}
@@ -28,7 +28,7 @@ export default function NewResultsBanner({ newResults, totalNewPoints, dismiss }
           {!expanded && (
             <button
               onClick={() => setExpanded(true)}
-              className="text-xs text-accent-400 hover:underline mt-2"
+              className="text-xs text-brand-500 hover:underline mt-2"
             >
               Ver detalles ↓
             </button>
@@ -57,7 +57,7 @@ export default function NewResultsBanner({ newResults, totalNewPoints, dismiss }
                           : <span className="italic">No pronosticaste</span>}
                       </span>
                       {pts != null && (
-                        <span className={`pill ${pts > 0 ? 'bg-accent-500 text-brand-900' : 'bg-ink-700 text-ink-300'}`}>
+                        <span className={`pill ${pts > 0 ? 'bg-brand-600 text-white' : 'bg-ink-700 text-ink-300'}`}>
                           {pts > 0 ? `+${pts} pts` : '0 pts'}
                         </span>
                       )}
@@ -76,7 +76,7 @@ export default function NewResultsBanner({ newResults, totalNewPoints, dismiss }
           <div className="flex items-center justify-end mt-3">
             <button
               onClick={dismiss}
-              className="text-xs px-3 py-1.5 rounded-full bg-accent-500 text-brand-900 hover:bg-accent-400 font-semibold"
+              className="text-xs px-3 py-1.5 rounded-full bg-brand-600 text-white hover:bg-brand-700 font-semibold"
             >
               ✓ Entendido
             </button>
