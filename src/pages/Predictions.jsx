@@ -7,6 +7,7 @@ import {
   groupedMatches,
   formatKickoff,
   isMatchLocked,
+  matchById,
 } from '../lib/matches'
 import { scoreMatch } from '../lib/scoring'
 import { resolveTeam, autoResolveGroupPositions } from '../lib/bracketTeams'
@@ -298,7 +299,7 @@ export default function Predictions() {
       supabase.from('profiles').select('id, display_name, nickname, avatar'),
     ])
     const map = {}
-    for (const p of pRes.data || []) map[p.match_id] = { score1: p.score1, score2: p.score2 }
+    for (const p of pRes.data || []) map[p.match_id] = { score1: p.score1, score2: p.score2, advances: p.advances ?? null }
     setPreds(map)
     setOriginal(JSON.parse(JSON.stringify(map)))
 
@@ -429,13 +430,27 @@ export default function Predictions() {
   const displayMatches = viewMode === 'calendario' ? calendarMatches : matches
 
   const dirty = useMemo(() => {
+    // Calcula el "quién pasa" efectivo igual que al guardar: en playoffs lo fuerza
+    // el marcador, salvo empate (ahí vale la elección del usuario).
+    const effAdv = (matchId, p) => {
+      const m = matchById(matchId)
+      if (!m || m.stage === 'group') return null
+      const s1 = p?.score1, s2 = p?.score2
+      if (s1 === '' || s2 === '' || s1 == null || s2 == null) return null
+      const a = Number(s1), b = Number(s2)
+      if (a > b) return 'team1'
+      if (b > a) return 'team2'
+      return p?.advances ?? null // empate
+    }
     const keys = new Set([...Object.keys(preds), ...Object.keys(original)])
     for (const k of keys) {
       const a = preds[k]
       const b = original[k]
       if (!a && !b) continue
       if (!a || !b) return true
-      if (a.score1 !== b.score1 || a.score2 !== b.score2) return true
+      if (Number(a.score1) !== Number(b.score1) || Number(a.score2) !== Number(b.score2)) return true
+      // Cambio solo del ganador (marcador igual): también cuenta como cambio.
+      if (effAdv(k, a) !== effAdv(k, b)) return true
     }
     return false
   }, [preds, original])
@@ -467,7 +482,12 @@ export default function Predictions() {
         else effectiveAdvances = p.advances ?? null // empate: elección del usuario
       }
       const o = original[m.id]
-      if (o && o.score1 === p.score1 && o.score2 === p.score2 && (o.advances ?? null) === effectiveAdvances) continue
+      // Comparar normalizando a número (los scores pueden venir como string del input)
+      const sameScore = o &&
+        Number(o.score1) === Number(p.score1) &&
+        Number(o.score2) === Number(p.score2)
+      const sameAdvances = o && (o.advances ?? null) === effectiveAdvances
+      if (sameScore && sameAdvances) continue
       rows.push({
         user_id: user.id,
         match_id: m.id,
@@ -491,7 +511,26 @@ export default function Predictions() {
       setSavedMsg('❌ Error: ' + error.message)
     } else {
       setSavedMsg(`✅ Guardado (${rows.length})`)
-      setOriginal(JSON.parse(JSON.stringify(preds)))
+      // Reconstruir 'original' con lo que REALMENTE se guardó (advances efectivo),
+      // no con los preds crudos. Así la próxima comparación de cambios es correcta
+      // y se puede volver a cambiar el ganador sin que diga "sin cambios".
+      const newOriginal = JSON.parse(JSON.stringify(preds))
+      for (const r of rows) {
+        newOriginal[r.match_id] = {
+          score1: r.score1,
+          score2: r.score2,
+          advances: r.advances ?? null,
+        }
+      }
+      // También actualizar preds para que la UI muestre el advances efectivo
+      setPreds(prev => {
+        const next = { ...prev }
+        for (const r of rows) {
+          next[r.match_id] = { ...next[r.match_id], advances: r.advances ?? null }
+        }
+        return next
+      })
+      setOriginal(newOriginal)
       setTimeout(() => setSavedMsg(''), 2500)
     }
   }
