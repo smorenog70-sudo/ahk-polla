@@ -8,6 +8,7 @@ import {
   FECHA_ORDER,
 } from '../lib/playerStats'
 import { fechaMatchIds, FECHA_LABELS } from '../lib/matches'
+import { buildResolver } from '../lib/bracketTeams'
 import { displayName, displayAvatar } from '../lib/playerDisplay'
 
 export default function FechaRecap() {
@@ -54,6 +55,13 @@ export default function FechaRecap() {
     ranking.sort((a, b) => b.pts - a.pts)
     const myRank = ranking.findIndex(r => r.uid === user.id) + 1
 
+    const { resolveMatch } = buildResolver(data)
+    if (summary?.best?.match) {
+      summary.best = { ...summary.best, match: resolveMatch(summary.best.match) }
+    }
+    if (summary?.worst?.match) {
+      summary.worst = { ...summary.worst, match: resolveMatch(summary.worst.match) }
+    }
     return { summary, myRank, totalPlayers: ranking.length }
   }, [activeFecha, data, user.id, resultsById])
 
@@ -227,7 +235,7 @@ async function renderRecapImage(recap, me) {
   ctx.textAlign = 'center'
   ctx.fillStyle = '#2E5DA8'
   ctx.font = 'bold 40px -apple-system, system-ui, sans-serif'
-  ctx.fillText('DARI-POLLA', W / 2, 300)
+  ctx.fillText('POLLA AHK', W / 2, 300)
   ctx.fillStyle = '#cbd5e1'
   ctx.font = '26px -apple-system, system-ui, sans-serif'
   ctx.fillText(`Resumen · ${recap.summary.label}`, W / 2, 345)

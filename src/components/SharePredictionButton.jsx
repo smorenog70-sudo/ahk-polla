@@ -55,7 +55,7 @@ export default function SharePredictionButton({ match, prediction, userName }) {
     ctx.fillStyle = '#2E5DA8' // brand-500
     ctx.font = 'bold 42px -apple-system, system-ui, sans-serif'
     ctx.textAlign = 'center'
-    ctx.fillText('DARI-POLLA', W / 2, 320)
+    ctx.fillText('POLLA AHK', W / 2, 320)
     ctx.fillStyle = '#cbd5e1' // ink-300
     ctx.font = '24px -apple-system, system-ui, sans-serif'
     ctx.fillText('Mi pronóstico · Mundial 2026', W / 2, 360)

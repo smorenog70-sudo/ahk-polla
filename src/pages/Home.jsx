@@ -341,8 +341,8 @@ export default function Home() {
       </div>
 
       {/* Banners */}
-      <NewResultsBanner newResults={newResults} totalNewPoints={totalNewPoints} dismiss={dismissResults} />
-      <PendingMatchesBanner userPredictions={myPreds} />
+      <NewResultsBanner newResults={newResults} totalNewPoints={totalNewPoints} dismiss={dismissResults} resolveMatch={resolveMatchTeams} />
+      <PendingMatchesBanner userPredictions={myPreds} resolveMatch={resolveMatchTeams} />
       <NewAchievementsBanner />
 
       {/* PARTIDOS EN CURSO / RECIÉN TERMINADOS */}

@@ -2,6 +2,7 @@ import { useMemo, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { useLeagueData } from '../lib/useLeagueData'
 import { fechaMatchIds, FECHA_LABELS, matchById } from '../lib/matches'
+import { buildResolver } from '../lib/bracketTeams'
 import { teamWithFlag } from '../lib/flags'
 import { playedMatches, streaks } from '../lib/playerStats'
 import {
@@ -36,7 +37,7 @@ function golfLabel(rank, tied, filter) {
 }
 
 // Traduce cualquier filtro (total, group-Fx, day-YYYY-MM-DD, match-ID) a texto legible
-function filterLabel(filter) {
+function filterLabel(filter, bracketTeams = {}) {
   if (filter === 'total') return 'Acumulado'
   if (filter.startsWith('day-')) {
     const d = new Date(filter.slice(4) + 'T12:00:00')
@@ -44,7 +45,10 @@ function filterLabel(filter) {
   }
   if (filter.startsWith('match-')) {
     const m = matchById(filter.slice(6))
-    return m ? `${m.team1} vs ${m.team2}` : 'Partido'
+    if (!m) return 'Partido'
+    const t1 = bracketTeams[m.team1_raw || m.team1] || m.team1
+    const t2 = bracketTeams[m.team2_raw || m.team2] || m.team2
+    return `${t1} vs ${t2}`
   }
   return FECHA_LABELS[filter] || filter
 }
@@ -64,6 +68,7 @@ function ModeBtn({ active, onClick, children }) {
 
 export default function Standings() {
   const data = useLeagueData()
+  const { teams: bracketTeamsMap } = useMemo(() => buildResolver(data), [data.results, data.config])
   const [filter, setFilter] = useState('total')
   const [viewMode, setViewMode] = useState('lista') // 'lista' | 'barras' | 'carrera'
   const [filterMode, setFilterMode] = useState('fase') // 'fase' | 'dia' | 'partido'
@@ -195,8 +200,10 @@ export default function Standings() {
     const m = matchById(lastId)
     const r = data.results.find(x => x.match_id === lastId)
     if (!m || !r) return null
-    return { team1: m.team1, team2: m.team2, score1: r.score1, score2: r.score2 }
-  }, [data.results])
+    const t1 = bracketTeamsMap[m.team1_raw || m.team1] || m.team1
+    const t2 = bracketTeamsMap[m.team2_raw || m.team2] || m.team2
+    return { team1: t1, team2: t2, score1: r.score1, score2: r.score2 }
+  }, [data.results, bracketTeamsMap])
 
   // Datos para la "carrera": evolución acumulada de cada jugador a lo largo
   // de los partidos con resultado (incluye bonos desde el cierre de grupos).
@@ -275,10 +282,19 @@ export default function Standings() {
 
   const playedMatchesList = useMemo(() => {
     return data.results
-      .map(r => matchById(r.match_id))
+      .map(r => {
+        const m = matchById(r.match_id)
+        if (!m) return null
+        if (m.stage === 'group') return m
+        return {
+          ...m,
+          team1: bracketTeamsMap[m.team1_raw || m.team1] || m.team1,
+          team2: bracketTeamsMap[m.team2_raw || m.team2] || m.team2,
+        }
+      })
       .filter(Boolean)
       .sort((a, b) => new Date(b.kickoff_utc) - new Date(a.kickoff_utc))
-  }, [data.results])
+  }, [data.results, bracketTeamsMap])
 
   const dayShort = (date) => {
     const today = new Date(); today.setHours(0, 0, 0, 0)
@@ -393,14 +409,14 @@ export default function Standings() {
     setSharing(true)
     setShareMsg('')
     try {
-      const canvas = await renderTableImage(rows, filter)
+      const canvas = await renderTableImage(rows, filter, bracketTeamsMap)
       const blob = await new Promise(res => canvas.toBlob(res, 'image/png'))
       const file = new File([blob], 'tabla-polla-ahk.png', { type: 'image/png' })
       if (navigator.canShare && navigator.canShare({ files: [file] })) {
         await navigator.share({
           files: [file],
           title: 'Tabla Polla AHK',
-          text: `Así va la Polla AHK 🏆 · ${filterLabel(filter)}`,
+          text: `Así va la Polla AHK 🏆 · ${filterLabel(filter, bracketTeamsMap)}`,
         })
         setShareMsg('✅ Compartido')
       } else {
@@ -429,7 +445,7 @@ export default function Standings() {
         <p className="text-xs text-ink-300">
           {filter === 'total'
             ? 'Acumulado total con todas las predicciones.'
-            : `Solo los puntos de: ${filterLabel(filter)}.`}
+            : `Solo los puntos de: ${filterLabel(filter, bracketTeamsMap)}.`}
         </p>
       </div>
 
@@ -733,7 +749,7 @@ export default function Standings() {
 // ===================================================================
 // Generar imagen de la tabla para compartir (estilo Polla AHK azul)
 // ===================================================================
-async function renderTableImage(rows, filter) {
+async function renderTableImage(rows, filter, bracketTeams = {}) {
   const top = rows.slice(0, 15) // primeros 15 para que quepan bien
   const W = 1080
   const rowH = 56
@@ -771,10 +787,10 @@ async function renderTableImage(rows, filter) {
   ctx.textAlign = 'center'
   ctx.fillStyle = '#2E5DA8'
   ctx.font = 'bold 46px -apple-system, system-ui, sans-serif'
-  ctx.fillText('DARI-POLLA', W / 2, 215)
+  ctx.fillText('POLLA AHK', W / 2, 215)
   ctx.fillStyle = '#cbd5e1'
   ctx.font = '26px -apple-system, system-ui, sans-serif'
-  const sub = filter === 'total' ? 'Tabla acumulada' : `Tabla · ${filterLabel(filter)}`
+  const sub = filter === 'total' ? 'Tabla acumulada' : `Tabla · ${filterLabel(filter, bracketTeams)}`
   ctx.fillText(sub, W / 2, 255)
   ctx.fillStyle = '#94a3b8'
   ctx.font = '20px -apple-system, system-ui, sans-serif'
